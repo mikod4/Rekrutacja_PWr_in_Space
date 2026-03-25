@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Document</title>
+</head>
+
+<body>
+    <header>
+        <div id="header-content">
+            <a href="/">
+                <img src="{{ url_for('static', filename='img/pwr-in-space-small.jpg') }}" alt="Logo">
+            </a>
+            <h1>Komunikacja</h1>
+        </div>
+    </header>
+
+    <main>
+        <section id="status-data">
+            <h2>Stan krzyisa</h2>
+
+            <p>Poziom energii</p>
+            <p>Tętno</p>
+            <p>Temperatura</p>
+            <p>Nastrój</p>
+        </section>
+
+        <section id="graph">
+            <h2>Tętno</h2>
+        </section>
+
+        <section id="communication">
+            <h2>Komunikacja</h2>
+
+            <div id="chat-container">
+                <div id="chat-history">
+                </div>
+
+                <form id="msg-form">
+                    <input type="text" id="msg-input" placeholder="Wiadomość..." autocomplete="off" required>
+                    <button type="submit" id="send-btn">Wyślij</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
