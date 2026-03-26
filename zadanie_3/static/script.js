@@ -14,6 +14,8 @@ function selectUser(user) {
     socket.emit('join', { user: current_user });
 
     loadMessages();
+    socket.emit('update_stats', current_user);
+
     setInterval(() => socket.emit('update_stats', current_user), 3000)
 }
 
