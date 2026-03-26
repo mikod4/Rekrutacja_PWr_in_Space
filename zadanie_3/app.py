@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO, join_room
 from time import sleep
 import database
@@ -13,7 +13,9 @@ stats = stats_generator.Stats()
 
 @app.route("/history", methods=["GET"])
 def get_recent_history():
-    rows = database.get_recent_messages(10)
+    offset = request.args.get('offset', default=0, type=int)
+
+    rows = database.get_recent_messages(limit=10, offset=offset)
 
     messages = []
     for row in rows:

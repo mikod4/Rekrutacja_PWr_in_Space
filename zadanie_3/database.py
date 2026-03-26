@@ -30,13 +30,14 @@ def add_message(sender: str, receiver: str, message: str):
     return cursor.lastrowid
 
 
-def get_recent_messages(n: int):
-    if n <= 0:
+def get_recent_messages(limit: int, offset: int = 0):
+    if limit <= 0:
         return []
 
     conn = get_database_connection()
     cursor = conn.execute(
-        'SELECT * FROM chat_history ORDER BY id DESC LIMIT (?)', (n,)
+        'SELECT * FROM chat_history ORDER BY id DESC LIMIT (?) OFFSET (?)', (
+            limit, offset)
     )
 
     data = cursor.fetchall()

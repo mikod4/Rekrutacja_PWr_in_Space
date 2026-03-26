@@ -53,19 +53,35 @@ header {
     cursor: pointer;
 }
 
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: safe;
+    gap: 30px;
+}
+
+#stats-container {
+    padding: 2%;
+    border-radius: 10px;
+    box-shadow: 0 0 5px 5px #3b3f3b;
+}
+
+#communication {
+    max-width: 45%;
+}
+
 #chat-container {
     display: flex;
     flex-direction: column;
     padding: 5px;
     border: 2px solid #2e312e;
-    border-radius: 5px;
-    max-width: 40%;
+    border-radius: 10px;
+    box-shadow: 0 0 5px 5px #3b3f3b;
 }
 
 #chat-history {
     flex-grow: 1;
     padding: 5px;
-    padding-right: 20px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;

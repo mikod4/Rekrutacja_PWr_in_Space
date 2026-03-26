@@ -1,5 +1,9 @@
 let last_msg_id = -1;
 let current_user = "";
+let message_offset = 0;
+let is_fetching = false;
+let has_more_messages = true;
+let stats_interval = null
 
 const socket = io();
 const chat_history = document.getElementById("chat-history");
@@ -20,26 +24,37 @@ function selectUser(user) {
     loadMessages();
     socket.emit('update_stats', current_user);
 
-    setInterval(() => socket.emit('update_stats', current_user), 3000)
+    if (stats_interval !== null) {
+        clearInterval(stats_interval);
+    }
+
+    stats_interval = setInterval(() => socket.emit('update_stats', current_user), 3000);
 }
 
 function clearMessages() {
     last_msg_id = -1;
+    message_offset = 0;
+    is_fetching = false;
+    has_more_messages = true;
     chat_history.innerHTML = "";
 }
 
-function add_message(msg) {
-    if (msg.id > last_msg_id) {
+function add_message(msg, prepend = false) {
+    if (prepend || msg.id > last_msg_id) {
         const div = document.createElement("div");
         div.className = msg.sender === current_user ? 'msg-sent' : 'msg-received'
 
         div.innerHTML = `<strong>${msg.sender}: </strong>${msg.content}`;
 
-        chat_history.appendChild(div);
+        if (prepend) {
+            chat_history.prepend(div)
+        } else {
+            chat_history.appendChild(div);
 
-        last_msg_id = msg.id;
+            last_msg_id = msg.id;
 
-        chat_history.scrollTop = chat_history.scrollHeight;
+            chat_history.scrollTop = chat_history.scrollHeight;
+        }
     }
 }
 
@@ -47,10 +62,44 @@ async function loadMessages() {
     const response = await fetch('/history');
     const messages = await response.json();
 
-    messages.forEach(add_message);
+    messages.forEach(msg => add_message(msg, false));
 
-    chat_history.scrollTop = chat_history.scrollHeight;
+    message_offset = messages.length;
+
+    setTimeout(() => chat_history.scrollTop = chat_history.scrollHeight, 10);
 }
+
+async function loadOlderMessages() {
+    if (is_fetching || !has_more_messages) {
+        return;
+    }
+
+    is_fetching = true;
+
+    const response = await fetch(`/history?offset=${message_offset}`);
+    const older_messages = await response.json();
+
+    if (older_messages.length === 0) {
+        has_more_messages = false;
+        is_fetching = false;
+        return;
+    }
+
+    const scroll_height = chat_history.scrollHeight;
+
+    older_messages.reverse().forEach(msg => add_message(msg, true));
+
+    chat_history.scrollTop = chat_history.scrollHeight - scroll_height;
+
+    message_offset += older_messages.length;
+    is_fetching = false;
+}
+
+chat_history.addEventListener('scroll', () => {
+    if (chat_history.scrollTop === 0) {
+        loadOlderMessages();
+    }
+});
 
 chat_form.addEventListener('submit', async (e) => {
     e.preventDefault()

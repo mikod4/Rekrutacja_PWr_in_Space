@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Document</title>
+    <title>Centrum monitoringu Krzysia</title>
 </head>
 
 <body>
@@ -29,16 +29,14 @@
 
     <main>
         <section id="status-data">
-            <h2>Stan Krzysia</h2>
+            <div id="stats-container">
+                <h2>Stan Krzysia</h2>
 
-            <p id="energy">Poziom energii</p>
-            <p id="pulse">Tętno</p>
-            <p id="temperature">Temperatura</p>
-            <p id="mood">Nastrój</p>
-        </section>
-
-        <section id="graph">
-            <h2>Tętno</h2>
+                <p id="energy">Poziom energii</p>
+                <p id="pulse">Tętno</p>
+                <p id="temperature">Temperatura</p>
+                <p id="mood">Nastrój</p>
+            </div>
         </section>
 
         <section id="communication">
