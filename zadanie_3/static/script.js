@@ -1,4 +1,4 @@
-let last_msg_id = 0;
+let last_msg_id = -1;
 let current_user = "";
 
 const socket = io();
@@ -6,17 +6,26 @@ const chat_history = document.getElementById("chat-history");
 const chat_form = document.getElementById("msg-form");
 const message_input = document.getElementById("msg-input");
 
+function showSelectUserModal() {
+    document.getElementById('login-modal').style.display = "";
+}
 
 function selectUser(user) {
-    current_user = user
+    current_user = user;
     document.getElementById('login-modal').style.display = "none";
 
     socket.emit('join', { user: current_user });
 
+    clearMessages();
     loadMessages();
     socket.emit('update_stats', current_user);
 
     setInterval(() => socket.emit('update_stats', current_user), 3000)
+}
+
+function clearMessages() {
+    last_msg_id = -1;
+    chat_history.innerHTML = "";
 }
 
 function add_message(msg) {

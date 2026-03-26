@@ -36,7 +36,7 @@ class Stats:
         self.energy = max(ENERGY_RANGE[0], min(ENERGY_RANGE[1], self.energy))
 
         self.pulse += random.randint(-PULSE_CHANGE, PULSE_CHANGE)
-        self.pulse = max(PULSE_RANGE[0], max(PULSE_RANGE[1], self.pulse))
+        self.pulse = max(PULSE_RANGE[0], min(PULSE_RANGE[1], self.pulse))
 
         self.temperature += random.uniform(-TEMP_CHANGE, TEMP_CHANGE)
         self.temperature = max(TEMP_RANGE[0], min(
