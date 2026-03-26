@@ -1,10 +1,14 @@
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, join_room
+from time import sleep
 import database
+import stats_generator
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode=None)
 database.databse_init()
+
+stats = stats_generator.Stats()
 
 
 @app.route("/history", methods=["GET"])
@@ -40,6 +44,14 @@ def handle_send_message(data):
 
         socketio.emit("new_message", broadcast_data, to=receiver)
         socketio.emit("new_message", broadcast_data, to=sender)
+
+
+@socketio.on('update_stats')
+def update_stats(sender):
+    stats.update_stats()
+    data = stats.get_stats()
+
+    socketio.emit('status_update_data', data, to=sender)
 
 
 @socketio.on('join')

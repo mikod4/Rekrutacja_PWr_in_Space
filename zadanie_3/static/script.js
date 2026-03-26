@@ -14,6 +14,7 @@ function selectUser(user) {
     socket.emit('join', { user: current_user });
 
     loadMessages();
+    setInterval(() => socket.emit('update_stats', current_user), 3000)
 }
 
 function add_message(msg) {
@@ -57,3 +58,10 @@ chat_form.addEventListener('submit', async (e) => {
 socket.on('new_message', (msg) =>
     add_message(msg)
 );
+
+socket.on('status_update_data', (stats) => {
+    document.getElementById("energy").innerHTML = `Poziom energii: ${stats.energy}%`;
+    document.getElementById("pulse").innerHTML = `Tętno: ${stats.pulse}`;
+    document.getElementById("temperature").innerHTML = `Temperatura: ${stats.temperature}`;
+    document.getElementById("mood").innerHTML = `Nastrój: ${stats.mood}`;
+});
