@@ -19,13 +19,15 @@ def databse_init():
 
 def add_message(sender: str, receiver: str, message: str):
     conn = get_database_connection()
-    conn.execute(
+    cursor = conn.execute(
         'INSERT INTO chat_history (sender, receiver, content) VALUES (?, ?, ?)', (
             sender, receiver, message)
     )
 
     conn.commit()
     conn.close()
+
+    return cursor.lastrowid
 
 
 def get_recent_messages(n: int):
@@ -34,7 +36,7 @@ def get_recent_messages(n: int):
 
     conn = get_database_connection()
     cursor = conn.execute(
-        'SELECT * FROM chat_history ORDER BY created_at DESC LIMIT (?)', (n,)
+        'SELECT * FROM chat_history ORDER BY id DESC LIMIT (?)', (n,)
     )
 
     data = cursor.fetchall()

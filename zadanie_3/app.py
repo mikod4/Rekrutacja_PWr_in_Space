@@ -1,14 +1,14 @@
-from flask import Flask, render_template, request, jsonify
-from markupsafe import escape
+from flask import Flask, render_template, jsonify
+from flask_socketio import SocketIO, join_room
 import database
-import random
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 database.databse_init()
 
 
-@app.route("/api/history", methods=["GET"])
-def get_history():
+@app.route("/history", methods=["GET"])
+def get_recent_history():
     rows = database.get_recent_messages(10)
 
     messages = []
@@ -23,29 +23,37 @@ def get_history():
     return jsonify(messages)
 
 
-@app.route("/api/message", methods=["POST"])
-def send_message():
-    data = request.get_json()
-    message = data["content"]
+@socketio.on("send_message")
+def handle_send_message(data):
+    content = data["content"]
+    sender = data["sender"]
+    receiver = data["receiver"]
 
-    if message:
-        database.add_message("Ziemia", "Krzyś", message)
+    if content and sender and receiver:
+        msg_id = database.add_message(sender, receiver, content)
 
-        responses = [
-            "Krzysiu czuje się świetnie!",
-            "Tętno w normie, misja trwa.",
-            "Git"
-        ]
+        broadcast_data = {
+            "id": msg_id,
+            "sender": sender,
+            "content": content
+        }
 
-        random_resp = random.choice(responses)
+        socketio.emit("new_message", broadcast_data, to=receiver)
+        socketio.emit("new_message", broadcast_data, to=sender)
 
-        database.add_message("Krzyś", "Ziemia", random_resp)
 
-        return jsonify({"status": "sukces"}), 200
+@socketio.on('join')
+def handle_join(data):
+    user = data.get('user')
 
-    return jsonify({"status": "error: no text"}), 400
+    if user:
+        join_room(user)
 
 
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+if __name__ == "__main__":
+    socketio.run(app, debug=True, host='127.0.0.1', port='5001')
