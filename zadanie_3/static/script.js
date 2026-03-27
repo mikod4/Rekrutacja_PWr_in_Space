@@ -48,7 +48,6 @@ function selectUser(user) {
         current_user = user;
 
         loadMessages();
-        socket.emit('update_stats', current_user);
 
         switchTab('energy');
         chartsInit();
