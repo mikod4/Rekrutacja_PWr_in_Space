@@ -5,41 +5,117 @@ let is_fetching = false;
 let has_more_messages = true;
 let stats_interval = null
 
+const max_data_graph = 15;
+let timestamps = Array(max_data_graph).fill('');
+let energy_buffer = Array(max_data_graph).fill(null);
+let pulse_buffer = Array(max_data_graph).fill(null)
+let temperature_buffer = Array(max_data_graph).fill(null);
+let energy_chart, pulse_chart, temperature_chart;
+const chart_config = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 0 },
+    scales: {
+        x: { ticks: { color: '#aaa' }, grid: { color: '#333' } },
+        y: { ticks: { color: '#aaa' }, grid: { color: '#333' } }
+    },
+    plugins: { legend: { display: false } }
+};
+
 const socket = io();
 const chat_history = document.getElementById("chat-history");
 const chat_form = document.getElementById("msg-form");
 const message_input = document.getElementById("msg-input");
 
 function showSelectUserModal() {
-    document.getElementById('login-modal').style.display = "";
+    document.getElementById('login-modal').style.display = '';
 }
 
 function selectUser(user) {
-    current_user = user;
-    document.getElementById('login-modal').style.display = "none";
-
-    socket.emit('join', { user: current_user });
-
-    clearMessages();
-    loadMessages();
-    socket.emit('update_stats', current_user);
-
-    if (stats_interval !== null) {
-        clearInterval(stats_interval);
+    if (current_user !== null && user === current_user) {
+        document.getElementById('login-modal').style.display = 'none';
+        return;
     }
 
-    stats_interval = setInterval(() => socket.emit('update_stats', current_user), 3000);
+    socket.emit('join', { "user": user }, (response) => {
+        if (!response.success) {
+            alert(response.message);
+            return;
+        }
+
+        clearSessionData();
+
+        current_user = user;
+
+        loadMessages();
+        socket.emit('update_stats', current_user);
+
+        switchTab('energy');
+        chartsInit();
+
+        stats_interval = setInterval(() => socket.emit('update_stats', current_user), 3000);
+
+        document.getElementById('login-modal').style.display = 'none';
+    });
 }
 
-function clearMessages() {
+
+function switchTab(tab) {
+    document.getElementById('energy-canvas').style.display = 'none';
+    document.getElementById('pulse-canvas').style.display = 'none';
+    document.getElementById('temperature-canvas').style.display = 'none';
+
+    document.getElementById(`${tab}-canvas`).style.display = '';
+
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    const clicked_button = document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`);
+    if (clicked_button) clicked_button.classList.add('active');
+}
+
+function chartInit(canvas_id, dataset, line_color) {
+    return new Chart(
+        document.getElementById(canvas_id).getContext('2d'),
+        {
+            type: 'line',
+            data: { labels: timestamps, datasets: [{ data: dataset, borderColor: line_color, tension: 0.3 }] },
+            options: chart_config
+        }
+    );
+}
+
+function chartsInit() {
+    energy_chart = chartInit('energy-canvas', energy_buffer, '#f1c40f');
+    pulse_chart = chartInit('pulse-canvas', pulse_buffer, '#ff4d4d');
+    temperature_chart = chartInit('temperature-canvas', temperature_buffer, '#007bff');
+}
+
+function clearSessionData() {
     last_msg_id = -1;
+    current_user = "";
     message_offset = 0;
     is_fetching = false;
     has_more_messages = true;
+
+    if (stats_interval !== null) {
+        clearInterval(stats_interval);
+        stats_interval = null;
+    }
+
+    if (energy_chart) energy_chart.destroy();
+    if (pulse_chart) pulse_chart.destroy();
+    if (temperature_chart) temperature_chart.destroy();
+
+    timestamps = Array(max_data_graph).fill('');
+    energy_buffer = Array(max_data_graph).fill(null);
+    pulse_buffer = Array(max_data_graph).fill(null)
+    temperature_buffer = Array(max_data_graph).fill(null);
+
     chat_history.innerHTML = "";
 }
 
-function add_message(msg, prepend = false) {
+function addMessage(msg, prepend = false) {
     if (prepend || msg.id > last_msg_id) {
         const div = document.createElement("div");
         div.className = msg.sender === current_user ? 'msg-sent' : 'msg-received'
@@ -53,20 +129,29 @@ function add_message(msg, prepend = false) {
 
             last_msg_id = msg.id;
 
-            chat_history.scrollTop = chat_history.scrollHeight;
+            setTimeout(() => chat_history.scrollTop = chat_history.scrollHeight, 10);
         }
     }
 }
 
 async function loadMessages() {
+    is_fetching = true;
+
     const response = await fetch('/history');
     const messages = await response.json();
 
-    messages.forEach(msg => add_message(msg, false));
+    messages.forEach(msg => addMessage(msg, false));
 
     message_offset = messages.length;
 
-    setTimeout(() => chat_history.scrollTop = chat_history.scrollHeight, 10);
+    if (messages.length < 10) {
+        has_more_messages = false;
+    }
+
+    setTimeout(() => {
+        chat_history.scrollTop = chat_history.scrollHeight;
+        is_fetching = false;
+    }, 10);
 }
 
 async function loadOlderMessages() {
@@ -87,9 +172,9 @@ async function loadOlderMessages() {
 
     const scroll_height = chat_history.scrollHeight;
 
-    older_messages.reverse().forEach(msg => add_message(msg, true));
+    older_messages.reverse().forEach(msg => addMessage(msg, true));
 
-    chat_history.scrollTop = chat_history.scrollHeight - scroll_height;
+    setTimeout(() => chat_history.scrollTop = chat_history.scrollHeight - scroll_height, 10);
 
     message_offset += older_messages.length;
     is_fetching = false;
@@ -115,13 +200,33 @@ chat_form.addEventListener('submit', async (e) => {
     });
 });
 
-socket.on('new_message', (msg) =>
-    add_message(msg)
-);
+socket.on('new_message', (msg) => {
+    addMessage(msg);
+    message_offset++;
+});
 
 socket.on('status_update_data', (stats) => {
     document.getElementById("energy").innerHTML = `Poziom energii: ${stats.energy}%`;
     document.getElementById("pulse").innerHTML = `Tętno: ${stats.pulse}`;
     document.getElementById("temperature").innerHTML = `Temperatura: ${stats.temperature}`;
     document.getElementById("mood").innerHTML = `Nastrój: ${stats.mood}`;
+
+    const now = new Date();
+    const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+    timestamps.push(timeString);
+    energy_buffer.push(stats.energy);
+    pulse_buffer.push(stats.pulse);
+    temperature_buffer.push(stats.temperature);
+
+    if (timestamps.length > max_data_graph) {
+        timestamps.shift();
+        energy_buffer.shift();
+        pulse_buffer.shift();
+        temperature_buffer.shift();
+    }
+
+    if (energy_chart) energy_chart.update();
+    if (pulse_chart) pulse_chart.update();
+    if (temperature_chart) temperature_chart.update();
 });

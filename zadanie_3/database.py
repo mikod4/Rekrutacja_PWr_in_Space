@@ -36,7 +36,7 @@ def get_recent_messages(limit: int, offset: int = 0):
 
     conn = get_database_connection()
     cursor = conn.execute(
-        'SELECT * FROM chat_history ORDER BY id DESC LIMIT (?) OFFSET (?)', (
+        'SELECT * FROM chat_history ORDER BY created_at DESC LIMIT (?) OFFSET (?)', (
             limit, offset)
     )
 

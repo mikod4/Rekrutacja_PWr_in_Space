@@ -7,6 +7,7 @@ import stats_generator
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode=None)
 database.databse_init()
+active_users = {}
 
 stats = stats_generator.Stats()
 
@@ -60,8 +61,22 @@ def update_stats(sender):
 def handle_join(data):
     user = data.get('user')
 
-    if user:
+    if user in active_users.values():
+        return {
+            "success": False,
+            "message": f"Użytkownik {user}, już jest zalogowany na innym urządzeniu."
+        }
+    else:
         join_room(user)
+        active_users[request.sid] = user
+        return {"success": True}
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    if request.sid in active_users:
+        user = active_users.pop(request.sid)
+        print(f"User: {user} disconnected")
 
 
 @app.route("/")

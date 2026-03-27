@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
@@ -28,8 +30,8 @@
     </header>
 
     <main>
-        <section id="status-data">
-            <div id="stats-container">
+        <section id="status-data" class="content-container">
+            <div id="text-data">
                 <h2>Stan Krzysia</h2>
 
                 <p id="energy">Poziom energii</p>
@@ -39,15 +41,30 @@
             </div>
         </section>
 
-        <section id="communication">
-            <div id="chat-container">
+        <section id="content">
+            <div id="chat-container" class="content-container">
                 <div id="chat-history">
                 </div>
 
                 <form id="msg-form">
                     <input type="text" id="msg-input" placeholder="Wiadomość..." autocomplete="off" required>
-                    <button type="submit" id="send-btn">Wyślij</button>
+                    <button type="submit" id="send-btn" class="button">Wyślij</button>
                 </form>
+            </div>
+
+            <div id="data-visuals" class="content-container">
+                <div id="tabs">
+                    <button class="button tab-btn active" onclick="switchTab('energy')">Energia</button>
+                    <button class="button tab-btn" onclick="switchTab('pulse')">Tętno</button>
+                    <button class="button tab-btn" onclick="switchTab('temperature')">Temperatura</button>
+                </div>
+
+                <div id="chart-container">
+                    <canvas id="energy-canvas"></canvas>
+                    <canvas id="pulse-canvas"></canvas>
+                    <canvas id="temperature-canvas"></canvas>
+                </div>
+
             </div>
         </section>
     </main>
