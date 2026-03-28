@@ -16,7 +16,7 @@ MOODS = (
     (100, "Super")
 )
 
-UPDATE_COOLDOWN = 3
+UPDATE_COOLDOWN = 2.8
 
 
 class Stats:

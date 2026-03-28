@@ -52,6 +52,7 @@ function selectUser(user) {
         switchTab('energy');
         chartsInit();
 
+        socket.emit('update_stats', current_user)
         stats_interval = setInterval(() => socket.emit('update_stats', current_user), 3000);
 
         document.getElementById('login-modal').style.display = 'none';
