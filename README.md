@@ -7,7 +7,7 @@
 1. Sklonuj repozytorium lub pobierz plik .zip i go wypakuj
 2. Otwórz folder rezpozytorium w terminalu
 3. Zbuduj i uruchom kontenery dockera za pomocą polecenia:
-```docker compose up```
+```docker compose up --build```
 4. Po poprawnym uruchomienu serwera w przeglądarce internetowej należy wpisać:
 ```127.0.0.1:5001``` lub ```localhost:5001``` 
 aby wejść do aplikacji
