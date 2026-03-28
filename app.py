@@ -5,7 +5,7 @@ import database
 import stats_generator
 
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode=None)
+socketio = SocketIO(app, async_mode=None, cors_allowed_origins="*")
 database.databse_init()
 active_users = {}
 
@@ -85,4 +85,5 @@ def index():
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host='127.0.0.1', port='5001')
+    socketio.run(app, debug=False, host='0.0.0.0',
+                 port='5001', allow_unsafe_werkzeug=True)

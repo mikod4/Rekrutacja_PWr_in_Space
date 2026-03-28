@@ -200,6 +200,12 @@ chat_form.addEventListener('submit', async (e) => {
     });
 });
 
+window.addEventListener('beforeunload', () => {
+    if (current_user) {
+        socket.emit('leave', { "user": current_user });
+    }
+});
+
 socket.on('new_message', (msg) => {
     addMessage(msg);
     message_offset++;
