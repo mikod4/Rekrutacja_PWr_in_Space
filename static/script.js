@@ -202,7 +202,7 @@ chat_form.addEventListener('submit', async (e) => {
 
 window.addEventListener('beforeunload', () => {
     if (current_user) {
-        socket.emit('leave', { "user": current_user });
+        socket.emit('disconnect', { "user": current_user });
     }
 });
 
